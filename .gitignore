@@ -1,0 +1,14 @@
+# Datasets — never commit these (large, and often licence-restricted)
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+*.egg-info/
+.venv/
+venv/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
