@@ -122,7 +122,11 @@ Decided (record): The three methods disagree on row 0 (Key Gas = PD, IEC =
 No decision, Duval = D1; true label = PD). This is expected and is the reason to
 cross-check methods and, later, add ML.
 
-## 2026-08-21 — Step 12: validation
+Recorded (lesson): `.ipynb` (notebook) and `.py` (module) are different formats;
+after editing an imported `.py` you must restart the kernel for the notebook to
+see the change. (Both cost real debugging time in Steps 9–11.)
+
+## 2026-08-21 — Step 12: validation against published examples
 
 Decided: Validate the classical code against published examples before trusting it.
 Result: Duval reproduced a published worked example exactly (CH4=69, C2H4=10,
@@ -131,22 +135,49 @@ cases (82%). The ~6 mismatches are expected (method ceiling, no "Normal" zone,
 boundary cases) — not bugs. Code is trusted.
 Why: "Runs without error" ≠ "correct"; 28 matches (bar was ≥5) confirms no major bug.
 
-## Standing decisions for the next steps (recorded now, to honour later)
+## 2026-08-21 — Step 13: classical baseline scored  ← PART 2 COMPLETE
+
+Decided: Use the Duval Triangle as the classical baseline classifier, and score it
+on the UNSEEN test set (the same file the ML will be judged on).
+Rejected: Scoring on the training set only, or using Key Gas (its coarse labels
+like "T1/T2" don't map to a single class).
+Why: Duval always returns a named fault and maps cleanly to the seven labels;
+scoring on the unseen test set gives a fair, apples-to-apples baseline for ML.
+
+Result (record): Classical (Duval) baseline = 57.1% on the unseen test set (40/70),
+versus a lazy floor of 14.3% (test) / 22.9% (train). Duval on fault-only rows
+(excluding the 10 "Normal" cases it structurally cannot predict) ≈ 66.7% (40/60).
+**This 57.1% is the number the machine learning must beat in Part 3.**
+Calibration: classical DGA scoring 50–70% is normal and respectable — do not
+expect 90%+, and do not "improve" it by bending the standard to fit the data.
+
+## Part 2 artifacts (files / code created and committed)
+
+- `src/classical/key_gas.py`   — Key Gas method (dominant-gas → fault).
+- `src/classical/iec_ratios.py`— IEC 60599 three-ratio method + "No decision".
+- `src/classical/duval.py`     — Duval Triangle 1: percentages, coords, zone, plot.
+- `notebooks/01_load_and_look.ipynb` — load/inspect data; run + score all methods.
+- `reports/` — four documentation PDFs (Foundation, Dataset Forensics, Progress
+  Log Part 0-1, Project Journey) + this decision log at the repo root.
+- Structure unchanged from Step 2: data/ notebooks/ src/classical/ models/ reports/.
+
+## Standing decisions for the next steps (Part 3 — machine learning)
 
 Decided: When splitting data for validation, use a STRATIFIED split (keep each
 class's proportion in every fold).
-Why: Rare classes (e.g. T2) could otherwise vanish from a fold.
+Why: Rare classes (e.g. T2 = 45) could otherwise vanish from a fold.
 
 Decided: Report PER-CLASS metrics (precision/recall), not just overall accuracy;
 never quote an IEC score without stating how the train/IEC overlap was handled.
 
-Decided: Classical methods first, machine learning second (Part 3).
-Why: The classical baseline is the number ML must beat, and the physics features
-help the model.
+Decided: Every ML model is judged against the classical baseline (57.1%). A model
+that cannot beat it is not earning its place.
+
+Decided: Classical first (done), machine learning second; use tree-based models
+(Random Forest / XGBoost) or SVM, NOT deep learning, given only 584 small rows.
 
 ## Pending / open items (not yet done)
 
 - Reword the README "why this matters" paragraph in my own words.
-- Commit the newest code (`key_gas.py`, `iec_ratios.py`, `duval.py`) and the four
-  report PDFs to GitHub once the machine is connected.
-- Step 13: score the classical baseline (the number ML must beat) — NEXT.
+- Commit + push the latest notebook and this updated decision log to GitHub.
+- Part 3 (Machine Learning): Step 14 (engineer features) — NEXT.
