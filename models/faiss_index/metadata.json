@@ -1,0 +1,70 @@
+{
+  "chunks": [
+    {
+      "text": "Section: IEEE C57.104-2019 Section 4 \u2014 Action Levels for Dissolved Gas Analysis IEEE C57.104 defines four action levels based on gas concentrations in ppm: Action Level 1 (normal): H2 < 100, CH4 < 75, C2H6 < 75, C2H4 < 75, C2H2 < 3, CO < 500. Continue normal operation and monitoring schedule. Action Level 2 (attention): concentrations 2 to 4 times Level 1 limits. Increase monitoring frequency. Investigate cause. No immediate shutdown required. Action Level 3 (high concern): concentrations 4 to 8 times Level 1 limits. Reduce loading if possible. Plan maintenance. Re-sample within one week. Action Level 4 (critical): concentrations exceed 8 times Level 1 limits or rapid gas generation. Remove from service if possible. Risk of failure is",
+      "section": "sec_action_levels",
+      "chunk_id": 0,
+      "source": "sec_action_levels.txt"
+    },
+    {
+      "text": "concentrations exceed 8 times Level 1 limits or rapid gas generation. Remove from service if possible. Risk of failure is significant. Immediate investigation required. C2H2 above 35 ppm always indicates serious arcing regardless of other gas levels.",
+      "section": "sec_action_levels",
+      "chunk_id": 1,
+      "source": "sec_action_levels.txt"
+    },
+    {
+      "text": "Section: IEC 60599 Section 5.3.2 \u2014 Low Energy Discharge (D1) Fault class: D1 Low energy electrical discharge \u2014 sparking or tracking between conductors or along insulation surfaces. Key marker gases: Acetylene (C2H2) and Hydrogen (H2) both elevated. C2H2/C2H4 ratio > 0.75. Methane (CH4) moderately elevated. Ethylene (C2H4) present. Causes: loose connections, tracking along solid insulation, low energy arcing in tap changers. IEC 60599 Rogers ratio code: (C2=1, R1=1, R2=0) or similar low-energy discharge pattern. Recommended action: Inspect tap changer, check for carbon tracking, perform dissolved gas trend analysis. Consider offline dielectric testing. Re-test interval: 1 month.",
+      "section": "sec_d1",
+      "chunk_id": 0,
+      "source": "sec_d1.txt"
+    },
+    {
+      "text": "Section: IEC 60599 Section 5.3.3 \u2014 High Energy Discharge (D2) Fault class: D2 High energy electrical discharge \u2014 arcing between conductors, risk of flashover. Key marker gases: Acetylene (C2H2) very high, Hydrogen (H2) high, Ethylene (C2H4) elevated. C2H2/C2H4 ratio between 0.1 and 3.0. This is a critical fault. Causes: flashover between windings, breakdown of insulation between conductors, arcing in OLTC. IEEE C57.104 Action Level 4: immediate action required. Remove transformer from service. Recommended action: URGENT. Plan immediate offline inspection. Analyse insulation paper samples. Check for metallic deposits indicating arc damage. Do not defer maintenance.",
+      "section": "sec_d2",
+      "chunk_id": 0,
+      "source": "sec_d2.txt"
+    },
+    {
+      "text": "Section: IEC 60599 Section 5.1 \u2014 Normal Operation Fault class: Normal A transformer in normal condition shows dissolved gas concentrations below threshold limits. No single gas dominates. Total dissolved combustible gas (TDCG) is low. IEEE C57.104 Action Level 1: H2 < 100 ppm, CH4 < 75 ppm, C2H6 < 75 ppm, C2H4 < 75 ppm, C2H2 < 3 ppm. Recommended action: Continue routine monitoring. Re-test interval 6 to 12 months. No maintenance intervention required under normal conditions.",
+      "section": "sec_normal",
+      "chunk_id": 0,
+      "source": "sec_normal.txt"
+    },
+    {
+      "text": "Section: IEC 60599 Section 5.3.1 \u2014 Partial Discharge (PD) Fault class: PD Partial discharge occurs in voids, moisture pockets, or near loose metallic particles. Key marker gas: Hydrogen (H2) is dominant. Methane (CH4) may also be elevated. Acetylene (C2H2) is absent or negligible in pure PD faults. IEC 60599 characteristic ratios: CH4/H2 < 0.1, C2H2/C2H4 < 0.1. Causes: moisture ingress, voids in insulation, gas bubbles, metallic particles. Recommended action: Investigate moisture levels, perform power factor test, check bushings. Re-test interval: 1 month. If H2 growth rate exceeds 10 percent per month, escalate inspection.",
+      "section": "sec_pd",
+      "chunk_id": 0,
+      "source": "sec_pd.txt"
+    },
+    {
+      "text": "Section: IEC 60599 Section 6 \u2014 Classical Ratio Methods for DGA Interpretation The following ratio methods are defined in IEC 60599 for diagnostic confirmation: Rogers Ratio Method: uses three ratios \u2014 C2H2/C2H4, CH4/H2, C2H4/C2H6. Each ratio is coded 0, 1, or 2. The combination of codes maps to a fault class. Duval Triangle Method: plots percentage of CH4, C2H4, C2H2 on a triangular diagram. Regions of triangle correspond to fault classes: PD, D1, D2, T1, T2, T3. Key Gas Method (IEEE C57.104): identifies the dominant gas to indicate fault type. H2 dominant = PD. C2H2 dominant = arcing. C2H4 dominant = high temperature thermal. CH4 dominant = low temperature thermal. Doernenburg Method: compares four ratios against threshold values. Requires at",
+      "section": "sec_ratios",
+      "chunk_id": 0,
+      "source": "sec_ratios.txt"
+    },
+    {
+      "text": "= high temperature thermal. CH4 dominant = low temperature thermal. Doernenburg Method: compares four ratios against threshold values. Requires at least one gas above its threshold limit to trigger the diagnosis.",
+      "section": "sec_ratios",
+      "chunk_id": 1,
+      "source": "sec_ratios.txt"
+    },
+    {
+      "text": "Section: IEC 60599 Section 5.3.4 \u2014 Thermal Fault Below 300 degrees Celsius (T1) Fault class: T1 Low temperature thermal fault \u2014 localised overheating below 300 degrees Celsius. Key marker gas: Methane (CH4) dominant. Ethane (C2H6) elevated. Hydrogen (H2) low. Acetylene (C2H2) essentially absent. CH4/H2 ratio > 1.0. Causes: overheated tap changer contacts, high resistance joints, localised eddy current heating. Typical profile: CH4 > C2H4, C2H4/C2H6 < 1.0. Recommended action: Check all bolted connections for high resistance. Inspect tap changer contacts. Review loading history. Re-test in 3 months.",
+      "section": "sec_t1",
+      "chunk_id": 0,
+      "source": "sec_t1.txt"
+    },
+    {
+      "text": "Section: IEC 60599 Section 5.3.5 \u2014 Thermal Fault 300 to 700 degrees Celsius (T2) Fault class: T2 Medium temperature thermal fault \u2014 hotspot in winding or core between 300 and 700 degrees Celsius. Key marker gases: Methane (CH4) and Ethylene (C2H4) both elevated. C2H4/C2H6 ratio between 1 and 3. Hydrogen (H2) moderately elevated. Acetylene absent. Causes: excessive eddy current losses in winding conductors, core bolt insulation failure, circulating currents. Recommended action: Review transformer loading. Perform frequency response analysis (FRA) to check winding. Inspect core clamps and core bolt insulation. Re-test in 1 month.",
+      "section": "sec_t2",
+      "chunk_id": 0,
+      "source": "sec_t2.txt"
+    },
+    {
+      "text": "Section: IEC 60599 Section 5.3.6 \u2014 Severe Thermal Fault Above 700 degrees Celsius (T3) Fault class: T3 Severe thermal fault \u2014 very high temperature hotspot above 700 degrees Celsius. Key marker gases: Ethylene (C2H4) dominant, Methane (CH4) and Acetylene (C2H2) also elevated. C2H4/C2H6 ratio greater than 3.0. Carbon monoxide (CO) may increase indicating paper degradation. Causes: severe overloading, blocked cooling ducts, core fault with sustained high temperature. IEEE C57.104 Action Level 4: transformer should be removed from service. Recommended action: URGENT. Risk of insulation breakdown and catastrophic failure. Reduce loading immediately. Inspect cooling system. Plan emergency maintenance outage.",
+      "section": "sec_t3",
+      "chunk_id": 0,
+      "source": "sec_t3.txt"
+    }
+  ]
+}
