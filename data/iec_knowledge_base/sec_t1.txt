@@ -1,0 +1,9 @@
+Section: IEC 60599 Section 5.3.4 — Thermal Fault Below 300 degrees Celsius (T1)
+Fault class: T1
+Low temperature thermal fault — localised overheating below 300 degrees Celsius.
+Key marker gas: Methane (CH4) dominant. Ethane (C2H6) elevated. Hydrogen (H2) low.
+Acetylene (C2H2) essentially absent. CH4/H2 ratio > 1.0.
+Causes: overheated tap changer contacts, high resistance joints, localised eddy current heating.
+Typical profile: CH4 > C2H4, C2H4/C2H6 < 1.0.
+Recommended action: Check all bolted connections for high resistance. Inspect tap changer contacts.
+Review loading history. Re-test in 3 months.

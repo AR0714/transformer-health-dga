@@ -1,0 +1,11 @@
+Section: IEEE C57.104-2019 Section 4 — Action Levels for Dissolved Gas Analysis
+IEEE C57.104 defines four action levels based on gas concentrations in ppm:
+Action Level 1 (normal): H2 < 100, CH4 < 75, C2H6 < 75, C2H4 < 75, C2H2 < 3, CO < 500.
+Continue normal operation and monitoring schedule.
+Action Level 2 (attention): concentrations 2 to 4 times Level 1 limits.
+Increase monitoring frequency. Investigate cause. No immediate shutdown required.
+Action Level 3 (high concern): concentrations 4 to 8 times Level 1 limits.
+Reduce loading if possible. Plan maintenance. Re-sample within one week.
+Action Level 4 (critical): concentrations exceed 8 times Level 1 limits or rapid gas generation.
+Remove from service if possible. Risk of failure is significant. Immediate investigation required.
+C2H2 above 35 ppm always indicates serious arcing regardless of other gas levels.

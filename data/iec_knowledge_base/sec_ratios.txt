@@ -1,0 +1,11 @@
+Section: IEC 60599 Section 6 — Classical Ratio Methods for DGA Interpretation
+The following ratio methods are defined in IEC 60599 for diagnostic confirmation:
+Rogers Ratio Method: uses three ratios — C2H2/C2H4, CH4/H2, C2H4/C2H6.
+Each ratio is coded 0, 1, or 2. The combination of codes maps to a fault class.
+Duval Triangle Method: plots percentage of CH4, C2H4, C2H2 on a triangular diagram.
+Regions of triangle correspond to fault classes: PD, D1, D2, T1, T2, T3.
+Key Gas Method (IEEE C57.104): identifies the dominant gas to indicate fault type.
+H2 dominant = PD. C2H2 dominant = arcing. C2H4 dominant = high temperature thermal.
+CH4 dominant = low temperature thermal.
+Doernenburg Method: compares four ratios against threshold values. Requires at least one gas
+above its threshold limit to trigger the diagnosis.

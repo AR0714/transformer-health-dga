@@ -1,0 +1,8 @@
+Section: IEC 60599 Section 5.3.5 — Thermal Fault 300 to 700 degrees Celsius (T2)
+Fault class: T2
+Medium temperature thermal fault — hotspot in winding or core between 300 and 700 degrees Celsius.
+Key marker gases: Methane (CH4) and Ethylene (C2H4) both elevated. C2H4/C2H6 ratio between 1 and 3.
+Hydrogen (H2) moderately elevated. Acetylene absent.
+Causes: excessive eddy current losses in winding conductors, core bolt insulation failure, circulating currents.
+Recommended action: Review transformer loading. Perform frequency response analysis (FRA) to check winding.
+Inspect core clamps and core bolt insulation. Re-test in 1 month.

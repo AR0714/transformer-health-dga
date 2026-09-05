@@ -1,0 +1,9 @@
+Section: IEC 60599 Section 5.3.6 — Severe Thermal Fault Above 700 degrees Celsius (T3)
+Fault class: T3
+Severe thermal fault — very high temperature hotspot above 700 degrees Celsius.
+Key marker gases: Ethylene (C2H4) dominant, Methane (CH4) and Acetylene (C2H2) also elevated.
+C2H4/C2H6 ratio greater than 3.0. Carbon monoxide (CO) may increase indicating paper degradation.
+Causes: severe overloading, blocked cooling ducts, core fault with sustained high temperature.
+IEEE C57.104 Action Level 4: transformer should be removed from service.
+Recommended action: URGENT. Risk of insulation breakdown and catastrophic failure.
+Reduce loading immediately. Inspect cooling system. Plan emergency maintenance outage.

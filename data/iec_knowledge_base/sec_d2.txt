@@ -1,0 +1,9 @@
+Section: IEC 60599 Section 5.3.3 — High Energy Discharge (D2)
+Fault class: D2
+High energy electrical discharge — arcing between conductors, risk of flashover.
+Key marker gases: Acetylene (C2H2) very high, Hydrogen (H2) high, Ethylene (C2H4) elevated.
+C2H2/C2H4 ratio between 0.1 and 3.0. This is a critical fault.
+Causes: flashover between windings, breakdown of insulation between conductors, arcing in OLTC.
+IEEE C57.104 Action Level 4: immediate action required. Remove transformer from service.
+Recommended action: URGENT. Plan immediate offline inspection. Analyse insulation paper samples.
+Check for metallic deposits indicating arc damage. Do not defer maintenance.

@@ -1,0 +1,7 @@
+Section: IEC 60599 Section 5.1 — Normal Operation
+Fault class: Normal
+A transformer in normal condition shows dissolved gas concentrations below threshold limits.
+No single gas dominates. Total dissolved combustible gas (TDCG) is low.
+IEEE C57.104 Action Level 1: H2 < 100 ppm, CH4 < 75 ppm, C2H6 < 75 ppm, C2H4 < 75 ppm, C2H2 < 3 ppm.
+Recommended action: Continue routine monitoring. Re-test interval 6 to 12 months.
+No maintenance intervention required under normal conditions.

@@ -1,0 +1,9 @@
+Section: IEC 60599 Section 5.3.1 — Partial Discharge (PD)
+Fault class: PD
+Partial discharge occurs in voids, moisture pockets, or near loose metallic particles.
+Key marker gas: Hydrogen (H2) is dominant. Methane (CH4) may also be elevated.
+Acetylene (C2H2) is absent or negligible in pure PD faults.
+IEC 60599 characteristic ratios: CH4/H2 < 0.1, C2H2/C2H4 < 0.1.
+Causes: moisture ingress, voids in insulation, gas bubbles, metallic particles.
+Recommended action: Investigate moisture levels, perform power factor test, check bushings.
+Re-test interval: 1 month. If H2 growth rate exceeds 10 percent per month, escalate inspection.

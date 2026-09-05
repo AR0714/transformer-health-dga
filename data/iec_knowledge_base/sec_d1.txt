@@ -1,0 +1,9 @@
+Section: IEC 60599 Section 5.3.2 — Low Energy Discharge (D1)
+Fault class: D1
+Low energy electrical discharge — sparking or tracking between conductors or along insulation surfaces.
+Key marker gases: Acetylene (C2H2) and Hydrogen (H2) both elevated. C2H2/C2H4 ratio > 0.75.
+Methane (CH4) moderately elevated. Ethylene (C2H4) present.
+Causes: loose connections, tracking along solid insulation, low energy arcing in tap changers.
+IEC 60599 Rogers ratio code: (C2=1, R1=1, R2=0) or similar low-energy discharge pattern.
+Recommended action: Inspect tap changer, check for carbon tracking, perform dissolved gas trend analysis.
+Consider offline dielectric testing. Re-test interval: 1 month.
