@@ -12,3 +12,4 @@ venv/
 # OS / editor cruft
 .DS_Store
 Thumbs.db
+!data/iec_knowledge_base/ 
