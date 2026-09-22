@@ -244,6 +244,7 @@ Place files in `data/` directory (gitignored).
 
 ## Repository Structure
 
+```
 transformer-health-dga/
 ├── data/
 │ ├── raw/ # IEEE DataPort DGA dataset
