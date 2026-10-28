@@ -1,5 +1,15 @@
 # Intelligent Transformer Health Monitoring using DGA & ML
 
+[![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-transformer--dga.netlify.app-orange?style=for-the-badge&logo=netlify)](https://transformer-dga.netlify.app)
+[![GitHub Dashboard Repo](https://img.shields.io/badge/Dashboard%20Repo-gridpulse--dashboard-181717?style=for-the-badge&logo=github)](https://github.com/AR0714/gridpulse-dashboard)
+
+![GridPulse — live dashboard demo](https://raw.githubusercontent.com/AR0714/gridpulse-dashboard/main/docs/demo.gif)
+
+> **GridPulse** is the live web dashboard that operationalises this
+> research — it visualises the XGBoost classifier in real time,
+> simulates DGA fault scenarios, and provides an AI-powered diagnostic
+> chat interface. [[View live →]](https://transformer-dga.netlify.app)
+
 > Classifies 7 internal fault types in oil-filled power transformers from
 > Dissolved Gas Analysis — beating the classical Duval Triangle baseline
 > by +23 percentage points using calibrated XGBoost, physics-informed
