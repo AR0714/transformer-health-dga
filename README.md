@@ -2,6 +2,7 @@
 
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-transformer--dga.netlify.app-orange?style=for-the-badge&logo=netlify)](https://transformer-dga.netlify.app)
 [![GitHub Dashboard Repo](https://img.shields.io/badge/Dashboard%20Repo-gridpulse--dashboard-181717?style=for-the-badge&logo=github)](https://github.com/AR0714/gridpulse-dashboard)
+[![Full Documentation](https://img.shields.io/badge/Full%20Documentation-Parts%201--4-blue?style=for-the-badge&logo=bookstack)](DOCUMENTATION.md)
 
 ![GridPulse — live dashboard demo](https://raw.githubusercontent.com/AR0714/gridpulse-dashboard/main/docs/demo.gif)
 
