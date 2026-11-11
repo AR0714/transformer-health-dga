@@ -2,7 +2,7 @@
 
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-transformer--dga.netlify.app-orange?style=for-the-badge&logo=netlify)](https://transformer-dga.netlify.app)
 [![GitHub Dashboard Repo](https://img.shields.io/badge/Dashboard%20Repo-gridpulse--dashboard-181717?style=for-the-badge&logo=github)](https://github.com/AR0714/gridpulse-dashboard)
-[![Full Documentation](https://img.shields.io/badge/Full%20Documentation-Parts%201--4-blue?style=for-the-badge&logo=bookstack)](DOCUMENTATION.md)
+[![Full Documentation (PDF)](https://img.shields.io/badge/Full%20Documentation-PDF-blue?style=for-the-badge&logo=bookstack)](docs/GridPulse_Project_Documentation.pdf)
 
 ![GridPulse — live dashboard demo](https://raw.githubusercontent.com/AR0714/gridpulse-dashboard/main/docs/demo.gif)
 
@@ -19,6 +19,31 @@
 **Student:** Ankit Raj | B.Tech Electrical Engineering (Final Year) | KIIT University, Bhubaneswar
 **Standards:** IEC 60599:2022 · IEEE C57.104-2019 · CIGRE TB 761
 **Dataset:** IEEE DataPort — DOI: 10.21227/27vy-h479
+
+---
+
+## Documentation
+
+This project is fully documented end to end — every build step, every
+design decision, every piece of code, and every honest limitation across
+all four project phases (classical foundation → industrial-grade upgrade →
+RAG diagnostic agent → conversational digital twin + live dashboard) is
+written up in one complete reference document:
+
+[![Read the full documentation (PDF)](https://img.shields.io/badge/Read-Full%20Documentation%20(PDF)-0f2742?style=for-the-badge&logo=adobeacrobatreader)](docs/GridPulse_Project_Documentation.pdf)
+
+| Format | File | Best for |
+|---|---|---|
+| **PDF** (formal, 41 pages) | [`docs/GridPulse_Project_Documentation.pdf`](docs/GridPulse_Project_Documentation.pdf) | Reading, printing, sharing with recruiters |
+| **Markdown** (plain text) | [`DOCUMENTATION.md`](DOCUMENTATION.md) | Browsing on GitHub, copying into other docs |
+
+The documentation covers: the problem and motivation, the full system
+architecture, the classical DGA methods implemented from scratch (Key Gas,
+IEC 60599 ratios, Duval Triangle, Rogers, Doernenburg, Duval Pentagon), the
+calibrated XGBoost classifier with SHAP explainability, the data-leakage
+audit, the RAG-powered LLM diagnostic agent, the conversational digital
+twin backend, the live dashboard, consolidated results, honest limitations,
+and exactly how to run every part of the system.
 
 ---
 
