@@ -211,9 +211,9 @@ This section exists because engineering credibility requires it.
   dataset. Field validation on an instrumented transformer would be
   required before operational deployment.
 
-- **LLM runs locally via Ollama.** The cloud-deployed version switches
-  the LLM endpoint to Groq / Together AI. No change to chatbot logic —
-  only the HTTP endpoint changes.
+- **LLM runs locally via Ollama.** The research agent in this repo uses a
+  local Ollama model. The separate gridpulse-dashboard repo uses Groq
+  (server-side) with an offline fallback when no key is available.
 
 ---
 
