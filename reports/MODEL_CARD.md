@@ -1,7 +1,7 @@
-# Model Card — Intelligent Transformer Health Monitor (DGA)
+# Model Card â€” Intelligent Transformer Health Monitor (DGA)
 
 ## Model Details
-- **Type:** XGBoost classifier (n_estimators=200, max_depth=4)
+- **Type:** XGBoost classifier (n_estimators=300, max_depth=6 (XGBoost default))
 - **Calibration:** Temperature scaling, T* = 1.7334
 - **Abstention threshold:** 0.50 confidence
 - **Features:** 5 raw gases + 4 engineered ratios (9 total)
@@ -11,7 +11,7 @@ Automated fault triage for oil-filled power transformers via dissolved gas analy
 Outputs one of 7 IEC TC10 fault classes or routes to engineer review.
 
 ## Training Data
-- Source: DGA_train.xlsx — 582 rows after deduplication (2 removed)
+- Source: DGA_train.xlsx â€” 582 rows after deduplication (2 removed)
 - Classes: Normal, PD, D1, D2, T1, T2, T3 (balanced, 10 per class in test set)
 
 ## Evaluation (70-row sealed test set)
@@ -20,8 +20,8 @@ Outputs one of 7 IEC TC10 fault classes or routes to engineer review.
 | Overall accuracy  | 80.0 % |
 | Macro F1          | 0.80   |
 | ECE (before cal.) | 0.158  |
-| ECE (after cal.)  | 0.106  |
-| Coverage @ 100 %  | 94.3 % |
+| ECE (after cal.)  | 0.106 (temperature fitted on the same 70 test rows, so in-sample) |
+| Coverage at 0.50 threshold | 94.3 % |
 | Abstention rate   | 5.7 %  |
 
 ## Per-Class F1

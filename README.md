@@ -34,7 +34,7 @@ written up in one complete reference document:
 
 | Format | File | Best for |
 |---|---|---|
-| **PDF** (formal, 41 pages) | [`docs/GridPulse_Project_Documentation.pdf`](docs/GridPulse_Project_Documentation.pdf) | Reading, printing, sharing with recruiters |
+| **PDF** (formal, 35 pages) | [`docs/GridPulse_Project_Documentation.pdf`](docs/GridPulse_Project_Documentation.pdf) | Reading, printing, sharing with recruiters |
 | **Markdown** (plain text) | [`DOCUMENTATION.md`](DOCUMENTATION.md) | Browsing on GitHub, copying into other docs |
 
 The documentation covers: the problem and motivation, the full system
@@ -55,11 +55,12 @@ and exactly how to run every part of the system.
 | IEC 60599 Ratios (classical) | Partial | No-decision on ~30% of cases |
 | Duval Triangle (classical) | 57.1% | Industry standard since 1970s |
 | Random Forest (ML baseline) | 78.6% | With physics-informed features |
-| **XGBoost — calibrated (ours)** | **80.0%** | **ECE: 0.15 → 0.10 after calibration** |
+| **XGBoost — calibrated (ours)** | **80.0%** (95% bootstrap CI [70.0%, 88.6%]) | **ECE: 0.158 → 0.106 after temperature scaling (T* = 1.7334) (temperature fitted on the same 70 test rows, so in-sample)** |
 
 **+23 percentage points above the Duval Triangle.**
-Both methods evaluated on the same 70-row held-out test set (10 samples
-per class, stratified split).
+Both methods evaluated on the same 70-row sealed test set (10 per class,
+stratified split). With n=70 the XGBoost accuracy has a wide 95% bootstrap
+confidence interval, [70.0%, 88.6%].
 
 ---
 
@@ -74,7 +75,7 @@ four parts:
 **Part 1:** Classical methods + calibrated XGBoost classifier
 **Part 2:** Probability calibration, SHAP explainability, fleet risk ranking
 **Part 3:** RAG-powered LLM diagnostic agent (IEC 60599 knowledge base + Ollama)
-**Part 4:** Live web dashboard with conversational chatbot and sensor simulator
+**Part 4:** Conversational assistant and live web dashboard: see the separate [gridpulse-dashboard](https://github.com/AR0714/gridpulse-dashboard) repository
 
 **The pipeline:**
 
@@ -82,8 +83,8 @@ Raw DGA Gases (5 key gases: H₂ CH₄ C₂H₆ C₂H₄ C₂H₂)
 ↓
 Classical Methods → Key Gas · IEC 60599 Ratios · Duval Triangle
 ↓
-Physics-Informed Feature Engineering (~13 features)
-IEC gas ratios + Duval coordinates + gas percentage fractions
+Physics-Informed Feature Engineering (9 features)
+5 raw gases + 3 IEC gas ratios + total gas
 ↓
 Calibrated XGBoost Classifier
 ↓
@@ -95,7 +96,7 @@ RAG Engine (FAISS + sentence-transformers + IEC 60599 knowledge base)
 ↓
 LLM Agent (Ollama / llama3.2) → Plain-language diagnostic answers
 ↓
-Live Web Dashboard + Conversational Chatbot
+Conversational chatbot (CLI); web dashboard in the gridpulse-dashboard repo
 
 
 ---
@@ -120,19 +121,19 @@ The dashboard additionally monitors CO and CO₂ for paper degradation context.
 ## Key Technical Findings
 
 **1. Physics-informed features beat raw gas values alone.**
-Feature engineering adds ~13 inputs from 5 raw gases: three IEC 60599
-ratio features (C₂H₂/C₂H₄, CH₄/H₂, C₂H₄/C₂H₆), Duval Triangle X/Y
-coordinates (barycentric projection), and gas percentage fractions. These
+Feature engineering turns 5 raw gases into 9 model inputs: the five
+gases themselves, three IEC 60599 ratio features (C₂H₂/C₂H₄, CH₄/H₂,
+C₂H₄/C₂H₆) and total dissolved gas. These
 encode decades of electrochemical physics that a data-only model would
 need thousands of samples to learn implicitly.
 
 **2. Calibration matters more than accuracy for risk ranking.**
 Raw XGBoost outputs overconfident probabilities (Expected Calibration
-Error = 0.15). After isotonic regression calibration via
-CalibratedClassifierCV, ECE dropped to 0.10 — a 33% reduction. A fleet
+Error = 0.158). After temperature scaling (T* = 1.7334, see
+`src/calibration.py`), ECE dropped to 0.106 — a 33% reduction (temperature fitted on the same 70 test rows, so in-sample). A fleet
 ranking built on uncalibrated probabilities produces an unreliable
-priority list. After calibration, when the model says 80% confident it
-is correct approximately 80% of the time.
+priority list. Calibration brings stated confidence closer to observed
+accuracy, but it does not make it exact.
 
 **3. SHAP confirmed the model learned real transformer chemistry.**
 For D2 (high-energy arcing) predictions, C₂H₂ (acetylene) has SHAP
@@ -151,11 +152,11 @@ faults share overlapping gas chemistry at boundary concentrations.
 ## System Architecture
 
 ### Part 1–2: ML Pipeline (`notebooks/01_load_and_look.ipynb`)
-- Dataset: ~584 training rows (after deduplication), 70-row sealed test
-- Stratified 80/20 split (preserves rare T2 class: 21 training samples)
-- Feature engineering: ~13 physics-informed features from 5 raw gases
-- Model: XGBoost (300 estimators, max_depth=4, learning_rate=0.1)
-- Calibration: isotonic regression via CalibratedClassifierCV
+- Dataset: 582 training rows after deduplication (584 before), 70-row sealed test
+- Stratified split (keeps the small T2 class represented)
+- Feature engineering: 9 physics-informed features from 5 raw gases
+- Model: XGBoost (n_estimators=300, max_depth=6 (XGBoost default))
+- Calibration: temperature scaling (T* = 1.7334) via `CalibratedDGAModel`
 - Evaluation: 5-fold stratified cross-validation, macro-F1 primary metric
 - Explainability: SHAP TreeExplainer (summary plot + per-prediction waterfall)
 
@@ -171,16 +172,8 @@ faults share overlapping gas chemistry at boundary concentrations.
 - `agent.py` — Ollama HTTP integration (llama3.2, localhost:11434)
 - `diagnose_agent.py` — CLI agent: gas input → XGBoost → SHAP → IEC retrieval → LLM response
 
-### Part 4: Web Dashboard (`app/`)
-- `server.py` — Flask server with three endpoints:
-  - `GET /api/sensors` — live DGA simulation (7 gases, ±4% jitter, 3s polling)
-  - `GET /api/diagnosis` — ML classification on current sensor readings (5s polling)
-  - `POST /api/chat` — conversational chatbot with live sensor context injection
-- `static/index.html` — HTML/CSS/JS dashboard with:
-  - Animated transformer SVG (core color: green/yellow/red by fault severity)
-  - Live gas-level bars with IEC 60599 threshold markers
-  - Health status badge and confidence meter
-  - Embedded conversational chatbot panel
+### Part 4: Web Dashboard
+The web dashboard lives in the separate [gridpulse-dashboard](https://github.com/AR0714/gridpulse-dashboard) repository.
 
 ### Part 4 Backend (`src/`)
 - `sensor_simulator.py` — realistic DGA + electrical reading simulator
@@ -199,13 +192,13 @@ This section exists because engineering credibility requires it.
   not a natural distribution. Real-world performance on imbalanced fleet
   data will differ, particularly for rare fault types.
 
-- **Data leakage in IEC TC10 benchmark.** 41 of 49 IEC TC10 reference
-  rows (84%) overlap with training data. Any accuracy reported on all
+- **Data leakage in IEC TC10 benchmark.** 42 of 49 IEC TC10 reference
+  rows overlap with training data. Any accuracy reported on all
   49 IEC TC10 rows is inflated. The honest primary metric is the
-  independent 70-row sealed test. The 8 genuinely unseen IEC TC10 rows
+  independent 70-row sealed test. The 6 genuinely unseen IEC TC10 rows
   are too few for strong statistical claims.
 
-- **T2 class has 21 training samples.** Per-class recall for T2 is
+- **T2 is a small class** (45 rows in the raw training data, the smallest class). Per-class recall for T2 is
   less stable than for other classes. Treat T2 predictions with
   additional caution.
 
@@ -229,7 +222,7 @@ This section exists because engineering credibility requires it.
 ### Requirements
 ```bash
 pip install -r requirements.txt
-# Key packages: xgboost scikit-learn shap pandas numpy flask
+# Key packages: xgboost scikit-learn shap pandas numpy
 #               sentence-transformers faiss-cpu joblib requests
 ```
 
@@ -238,12 +231,6 @@ pip install -r requirements.txt
 # Install Ollama from ollama.com
 ollama pull llama3.2   # ~2 GB download, runs on 8 GB RAM
 ollama serve           # Start in a separate terminal
-```
-
-### Run the Web Dashboard
-```bash
-python app/server.py
-# Open http://127.0.0.1:5000
 ```
 
 ### Run the CLI Diagnostic Agent (Part 3)
@@ -309,17 +296,11 @@ transformer-health-dga/
 │ ├── intent_detector.py # Question intent classifier
 │ ├── transformer_chatbot.py # Conversational orchestrator
 │ └── chat_cli.py # CLI chatbot interface
-├── app/
-│ ├── server.py # Flask web server
-│ └── static/
-│ ├── index.html # Dashboard page
-│ ├── transformer.css # Styles + animations
-│ └── dashboard.js # Live polling + chatbot JS
 ├── reports/
-│ ├── shap_summary_bar.png
+│ ├── shap_summary.png
 │ ├── calibration_curve.png
 │ └── confusion_matrix.png
-├── DECISIONS_3.md # All key engineering decisions
+├── DECISIONS.md # All key engineering decisions
 ├── requirements.txt
 └── README.md
 

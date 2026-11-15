@@ -36,7 +36,7 @@ A power transformer costs USD 2–10 million and takes 18–24 months to replace
 This project takes that diagnostic technique from a set of classical hand-calculations through four complete engineering phases, each one documented in its own handbook, and ending in a live, cinematic, AI-assisted monitoring dashboard that a recruiter, professor, or utility engineer can open in a browser today:
 
 - **Part 1** builds the foundation: classical diagnostic methods coded from scratch (Key Gas, IEC 60599 ratios, Duval Triangle), a calibrated XGBoost classifier that beats them, and the first working product (risk ranking + Streamlit dashboard).
-- **Part 2** turns that working model into an industrial-grade product: a six-method classical consensus engine, an abstention layer that refuses to guess when uncertain, a full data-leakage audit, rigorous statistical evaluation with confidence intervals, automated per-transformer PDF/HTML reports, a data-quality validation layer, and a standalone open-source Python package (`pydga`) published to PyPI.
+- **Part 2** turns that working model into an industrial-grade product: a six-method classical consensus engine, an abstention layer that refuses to guess when uncertain, a full data-leakage audit, rigorous statistical evaluation with confidence intervals, and the classical methods packaged as a standalone Python library (`pydga`), which is not yet published.
 - **Part 3** adds a Retrieval-Augmented Generation (RAG) layer: a local large language model (Ollama, Llama 3.2) grounded in the actual text of IEC 60599:2022 and IEEE C57.104-2019, so an engineer can ask follow-up questions in plain English and get answers that cite the standard, not hallucinations.
 - **Part 4** turns the system into a conversational digital twin: a chatbot that understands intent (health / voltage / gas / load / action-advice), remembers conversation context, adapts its vocabulary to a layperson or an engineer, and is wrapped in a live web dashboard with an animated transformer graphic, real-time gauges, and an embedded chat panel — deployable to the public internet.
 
@@ -56,7 +56,7 @@ The opportunity this project pursues is not to replace these classical methods, 
 
 1. **Implement them faithfully** as real, tested, standards-literate code (not black-box ML from the start) — because understanding the physics first is what separates an engineer who can defend every decision from someone who fit a model to data they don't understand.
 2. **Beat them** with a properly validated, calibrated, explainable machine-learning classifier trained on physics-informed features.
-3. **Operationalize** that classifier into something a utility engineer could actually act on: a risk-ranked fleet view, automated per-transformer reports, an abstention mechanism for uncertain cases, and finally a conversational interface that answers "is my transformer okay?" in plain English, grounded in the actual standard text.
+3. **Operationalize** that classifier into something a utility engineer could actually act on: a risk-ranked fleet view, an abstention mechanism for uncertain cases, and finally a conversational interface that answers "is my transformer okay?" in plain English, grounded in the actual standard text.
 
 This is deliberately framed as a diagnosis-and-triage layer on top of classical standards, not a replacement sensor platform or a claim of predicting failures — a distinction the documentation below is careful to preserve throughout, because overclaiming is the most common way an otherwise good ML project loses credibility with people who actually work in power systems.
 
@@ -77,21 +77,21 @@ Raw DGA Gases (H2, CH4, C2H6, C2H4, C2H2 [+ CO, CO2])
         ▼
 ┌───────────────────────────────────────────────────────────┐
 │  FEATURE ENGINEERING                                        │
-│  3 IEC ratios + Duval X/Y coordinates + 3 gas percentage    │
-│  fractions → 5 raw columns become ~13 physics-informed     │
-│  features                                                   │
+│  3 IEC ratios + total gas → 5 raw gas columns become 9      │
+│  physics-informed features                                  │
+│                                                             │
 └───────────────────────────────────────────────────────────┘
         │
         ▼
 ┌───────────────────────────────────────────────────────────┐
 │  CALIBRATED XGBOOST CLASSIFIER (Part 1 + Part 2)            │
-│  Stratified 5-fold CV · isotonic calibration (ECE 0.15→0.10)│
-│  · abstention layer below confidence threshold              │
+│  Stratified 5-fold CV · temperature scaling · ECE           │
+│  0.158→0.106 (temperature fitted on the same 70 test rows,  │
+│  so in-sample) · abstention below confidence threshold      │
 └───────────────────────────────────────────────────────────┘
         │
         ├──► SHAP explainability → plain-language translation
         ├──► Fleet risk ranking (probability × severity)
-        ├──► Automated per-transformer HTML/PDF reports
         │
         ▼
 ┌───────────────────────────────────────────────────────────┐
@@ -105,8 +105,8 @@ Raw DGA Gases (H2, CH4, C2H6, C2H4, C2H2 [+ CO, CO2])
 ┌───────────────────────────────────────────────────────────┐
 │  CONVERSATIONAL DIGITAL TWIN (Part 4)                       │
 │  Sensor simulator → conversation memory → intent detector → │
-│  chatbot brain (layperson/engineer mode) → CLI + Flask web  │
-│  dashboard with animated transformer graphic + live gauges  │
+│  chatbot brain (layperson/engineer mode) → CLI chatbot;     │
+│  web dashboard: see the separate gridpulse-dashboard repo   │
 └───────────────────────────────────────────────────────────┘
         │
         ▼
@@ -161,8 +161,8 @@ Rejected: Kaggle DGA sets - labels unverified, and many
 
 ## 2026-08-16
 Decided: stratified k-fold, not a plain split.
-Why: T2 class has ~21 samples; a random split could
-put nearly all of them in one fold.
+Why: T2 is a small class; a random split could
+put nearly all of its rows in one fold.
 ```
 *Mistake to avoid:* deciding to "remember it and write it up later" — the details that make this file valuable are gone within two days. **Done when:** `DECISIONS.md` exists with at least one entry.
 
@@ -184,7 +184,7 @@ df.isnull().sum()
 *Mistake to avoid:* skipping straight to modelling — everything not noticed here becomes a bug that can't be explained later. **Done when:** row/column counts and physical column meanings can be stated out loud.
 
 **Step 8 — Count the classes, and take the count seriously.**
-This single number shapes every later decision. The project's representative dataset is **376 samples**, with **113** in the majority high-energy-discharge class but only **21** in the rarest class, T2 (thermal 300–700 °C). That imbalance is why plain accuracy is misleading, why the split must be stratified, and why deep learning would be the wrong tool. The exercise: compute what accuracy a model would get by always predicting the most common class (the "lazy-model floor" that any real model must clear), and record that number in `DECISIONS.md`.
+This single number shapes every later decision. The project's training data is **582 rows after deduplication (584 before)**, and the classes are unevenly sized — T2 (thermal 300–700 °C), for example, has only 45 rows in the raw training data, the smallest class. That imbalance is why plain accuracy is misleading, why the split must be stratified, and why deep learning would be the wrong tool. The exercise: compute what accuracy a model would get by always predicting the most common class (the "lazy-model floor" that any real model must clear), and record that number in `DECISIONS.md`.
 ```python
 df['fault_type'].value_counts()
 df['fault_type'].value_counts(normalize=True)
@@ -257,7 +257,7 @@ print('no decision rate:', no_decision / len(y_iec))
 *"Five steps. Note that it arrives here, more than halfway in, which is exactly the point that impresses people who build these systems for a living."*
 
 **Step 14 — Engineer the features.**
-The model is never handed raw gas numbers alone — the IEC ratios and Duval coordinates built in Part 2 encode decades of physics, and handing those to a model as extra columns nearly always beats raw values alone. This is where domain knowledge becomes measurable performance, and it is the real advantage over a data scientist with no electrical background. The dataset grows from five columns to roughly thirteen: three IEC ratios, Duval X and Y, and three gas percentage fractions.
+The model is never handed raw gas numbers alone — the IEC ratios built in Part 2 encode decades of physics, and handing those to a model as extra columns nearly always beats raw values alone. This is where domain knowledge becomes measurable performance, and it is the real advantage over a data scientist with no electrical background. The dataset grows from five columns to nine: the five raw gases, three IEC ratios (C₂H₂/C₂H₄, CH₄/H₂, C₂H₄/C₂H₆) and total dissolved gas. Duval coordinates are used by the classical Duval method, not as model inputs.
 ```python
 df['c2h2_c2h4'] = df['C2H2'] / df['C2H4'].replace(0, pd.NA)
 df['ch4_h2']    = df['CH4'] / df['H2'].replace(0, pd.NA)
@@ -304,8 +304,8 @@ print(f'{scores.mean():.3f} +/- {scores.std():.3f}')
 Gradient-boosted trees usually match or slightly beat random forest on small tabular problems, so it's worth trying — but the real lesson of this step is the decision at the end: if the more complex model gains half a point of F1 and loses interpretability, choosing the simpler one and explaining why is a stronger answer than chasing the bigger number.
 ```python
 from xgboost import XGBClassifier
-xgb = XGBClassifier(n_estimators=300, max_depth=4,
-                     learning_rate=0.1, random_state=42)
+xgb = XGBClassifier(n_estimators=300, random_state=42,
+                    eval_metric='mlogloss')   # max_depth left at the XGBoost default (6)
 scores = cross_val_score(xgb, X, y, cv=cv, scoring='f1_macro')
 ```
 Neural networks are explicitly resisted — with a few hundred rows they overfit and calibrate badly, and being able to say that clearly is itself worth marks in an interview. *Mistake to avoid:* assuming the more complicated model must be better — on four hundred rows it very often is not.
@@ -317,11 +317,12 @@ Neural networks are explicitly resisted — with a few hundred rows they overfit
 **Step 19 — Calibrate the probabilities.**
 A model's raw confidence numbers are usually wrong out of the box — it can say 90% when it is right only 60% of the time — and this matters enormously here because the whole point of the system is ranking transformers by risk, and ranking by dishonest probabilities produces a dishonest priority list.
 ```python
-from sklearn.calibration import CalibratedClassifierCV
-calibrated = CalibratedClassifierCV(model, method='isotonic', cv=5)
-calibrated.fit(X_train, y_train)
+from src.calibration import CalibratedDGAModel
+calibrated = CalibratedDGAModel(model, method='temperature')
+calibrated.fit(X_test, y_test)          # fits one temperature T on held-out logits (T* = 1.7334)
 probs = calibrated.predict_proba(X_test)
 ```
+Temperature scaling divides the model's logits by a single learned value T before the softmax, so it softens over-confident probabilities without changing which class is predicted. The fitted value is **T\* = 1.7334**, which cut the expected calibration error (ECE) from **0.158 to 0.106**. Note that the temperature was fitted on the same 70 test rows used to measure ECE, so the ECE improvement (0.158 → 0.106) is in-sample.
 A calibration curve (predicted probability on one axis, observed frequency on the other) is plotted and saved; a well-calibrated model sits near the diagonal. *Mistake to avoid:* building the risk ranking before calibrating — the ranking is only as honest as the probabilities beneath it.
 
 **Step 20 — Add SHAP explanations.**
@@ -361,22 +362,17 @@ fleet[['unit_id', 'predicted_fault', 'p_serious', 'risk']].head(20)
 The scoring formula is deliberately kept simple and defensible — every term must be justifiable. *Mistake to avoid:* inventing an elaborate weighted formula that cannot be justified; simple and defensible beats sophisticated and arbitrary, every time.
 
 **Step 23 — Wrap it in a dashboard.**
-A recruiter will not run a notebook. A working interface they can click through — or even a short screen recording of one — communicates in fifteen seconds what a notebook cannot communicate at all. Streamlit turns Python into a web app with no web-development skill required.
-```bash
-pip install streamlit
-streamlit run src/app/streamlit_app.py
-```
-Three things built: a box to enter gas values that returns a diagnosis with probability, a Duval triangle plot with the sample marked on it, and the fleet risk table. *Mistake to avoid:* spending a week making it beautiful — three working features beat ten half-finished ones, and nobody is grading the colour scheme.
+A recruiter will not run a notebook. A working interface they can click through — or even a short screen recording of one — communicates in fifteen seconds what a notebook cannot communicate at all. The research repository does not ship a dashboard; the interactive front end is the separate `gridpulse-dashboard` repository (React + Three.js). The interface was planned as three things: a box to enter gas values that returns a diagnosis with probability, a Duval triangle plot with the sample marked on it, and the fleet risk table. *Mistake to avoid:* spending a week making it beautiful — three working features beat ten half-finished ones, and nobody is grading the colour scheme.
 
 **Step 24 — Rewrite the README as the real thing.**
 Now there are finally results, limitations, and decisions worth writing down. This is the document that determines whether anyone reads the code at all, and the section most portfolios omit — an honest limitations section — is the one that earns the most respect from experienced engineers. The actual limitations written into the project:
 ```
 ## Limitations
-- Dataset is ~400 labelled samples drawn from overlapping
-  public sources. Reported figures are dataset-specific and
+- Dataset is 582 training rows (after deduplication; 584
+  before) drawn from overlapping public sources. Reported figures are dataset-specific and
   should not be read as field performance.
-- Rarest class (T2) has 21 samples; per-class recall there
-  is correspondingly unstable.
+- T2 is a small class (45 rows in the raw training data, the smallest class); per-class recall
+  there is correspondingly unstable.
 - No time-series data, so trend features - which the
   standards weight heavily - are absent.
 - Not validated against any physically inspected transformer
@@ -400,7 +396,7 @@ This phase is explicitly grounded in deep research into **commercial DGA platfor
 An explicit **"do not add"** list was kept throughout Part 2, listing things the data genuinely cannot support and that would require inventing data: time-series trending, remaining-useful-life (RUL) prediction, a digital twin, real-time streaming, dollar-value risk figures, deep learning (CNN/LSTM), full multi-parameter Health Index, CO/CO₂-based paper-fault diagnosis, or financial-risk modelling. This discipline — refusing to claim more than the evidence supports — runs through the whole of Part 2.
 
 **Step 1 — Finish and push Part 1 (the gate).**
-Before any Part 2 work begins, the Part 1 repository must actually look finished: all artifacts (the ML notebook, classical method scripts, calibration/SHAP/confusion-matrix figures, fleet risk CSV, dashboard HTML, `DECISIONS.md`, `requirements.txt`) committed in one clean commit, and the README rewritten to the "real thing" standard from Part 1 Step 24 — header with badges, the problem stated with real figures, the required results table (Classical Duval 57.1%, Random Forest 78.6%, XGBoost calibrated 80.0%, ECE 0.15→0.10), an architecture diagram, a dashboard screenshot, 4–6 key findings, and an explicit evaluation-honesty section. **Verify:** visiting the GitHub page in a private browser window shows the results table, a dashboard screenshot, and a non-empty commit history — "the gate is open."
+Before any Part 2 work begins, the Part 1 repository must actually look finished: all artifacts (the ML notebook, classical method scripts, calibration/SHAP/confusion-matrix figures, fleet risk CSV, dashboard HTML, `DECISIONS.md`, `requirements.txt`) committed in one clean commit, and the README rewritten to the "real thing" standard from Part 1 Step 24 — header with badges, the problem stated with real figures, the required results table (Classical Duval 57.1%, Random Forest 78.6%, XGBoost calibrated 80.0%, ECE 0.158→0.106 (temperature fitted on the same 70 test rows, so in-sample), an architecture diagram, a dashboard screenshot, 4–6 key findings, and an explicit evaluation-honesty section. **Verify:** visiting the GitHub page in a private browser window shows the results table, a dashboard screenshot, and a non-empty commit history — "the gate is open."
 
 **Step 2 — Multi-method classical consensus engine (the signature differentiator).**
 Directly inspired by Camlin's commercial "DGA Matrix" feature, which markets itself as simplifying interpretation "by bringing all leading diagnostic methods together in one clear, colour-coded view," and grounded in Sutikno et al. (2024), which found that five classical methods can disagree on the very same sample. The engine implements and runs **six methods simultaneously** on one gas sample:
@@ -433,18 +429,18 @@ def predict_with_abstention(proba_row, threshold=ABSTAIN_THRESHOLD):
 A **risk-coverage curve** is then plotted — as the threshold is lowered (answering more cases), how does accuracy on the answered cases change — visualizing the trade-off explicitly and grounding the choice in the selective-prediction literature (Chow's rule; El-Yaniv & Wiener's risk-coverage framework). **Verify:** the curve slopes upward from right to left (confirming abstention helps); at full coverage, accuracy matches the Part 1 baseline (80%); at ~85% coverage accuracy rises to ~85–88%.
 
 **Step 4 — Leakage-aware evaluation audit (publishable honesty).**
-Grounded directly in Kapoor & Narayanan (2023, *Patterns* 4(9):100804, Princeton), which surveyed 22 review papers and found data leakage "across 17 scientific fields, collectively affecting 294 papers and in some cases leading to wildly overoptimistic conclusions." This project's own audit discovered that **41 of 49 rows (84%)** in the IEC TC10 benchmark set were exact duplicates of rows already in the training data — and documenting and correcting this is treated as a feature, not a weakness, since most comparable projects simply never check.
+Grounded directly in Kapoor & Narayanan (2023, *Patterns* 4(9):100804, Princeton), which surveyed 22 review papers and found data leakage "across 17 scientific fields, collectively affecting 294 papers and in some cases leading to wildly overoptimistic conclusions." This project's own audit discovered that **42 of 49 rows** in the IEC TC10 benchmark set were exact duplicates of rows already in the training data — and documenting and correcting this is treated as a feature, not a weakness, since most comparable projects simply never check.
 ```python
 train_tuples = set(map(tuple, df_clean[gas_cols].round(4).values))
 iec_tuples = [tuple(r) for r in df_iec[gas_cols].round(4).values]
 leaked_mask = [t in train_tuples for t in iec_tuples]
 n_leaked = sum(leaked_mask)
 print(f'IEC TC10 rows overlapping with training: {n_leaked}/{len(df_iec)}')
-# → 41/49 (84%)
+# → 42 overlapping
 df_iec_clean = df_iec[[not m for m in leaked_mask]].copy()
-# → 8 genuinely unseen rows remain
+# → 6 genuinely unseen rows remain
 ```
-After deduplicating the two exact-duplicate training rows and retraining, the model is re-evaluated on three separate slices: the original sealed 70-row test (unaffected, confirming it was already clean), the full 49-row IEC TC10 set *with* leakage (inflated), and the **8 genuinely unseen** IEC TC10 rows (honest, though n=8 is explicitly flagged as too small for strong claims). An "Evaluation Honesty" markdown cell is written directly into the notebook stating all of this plainly — described as "a level of evaluation transparency rare in student projects, and what separates a credible engineering result from an ML demo."
+After deduplicating the two exact-duplicate training rows and retraining, the model is re-evaluated on three separate slices: the original sealed 70-row test (unaffected, confirming it was already clean), the full 49-row IEC TC10 set *with* leakage (inflated), and the **6 genuinely unseen** IEC TC10 rows (honest, though n=6 is explicitly flagged as too small for strong claims). The counts are 42 overlap, 6 unseen, 1 row unaccounted for (duplicate suspected: the 6 comes from a row-wise match, the 42 from distinct gas readings, so a repeated IEC row would explain the gap; the raw data files are not in the repository, so this could not be re-checked). An "Evaluation Honesty" markdown cell is written directly into the notebook stating all of this plainly — described as "a level of evaluation transparency rare in student projects, and what separates a credible engineering result from an ML demo."
 
 **Step 5 — Deeper model comparison with honest metrics (evaluation rigour).**
 Random Forest and XGBoost differed by only 1.4 percentage points on the 70-row test — literally one sample's worth of difference — meaning accuracy alone is noise at this scale. SVM (RBF kernel) and LightGBM are added to the comparison; the primary metric switches to **macro-F1** (treating all seven fault classes equally); and **1000-iteration bootstrap confidence intervals** are computed for every model so that overlapping intervals can be used to prove that small accuracy differences are statistical noise rather than real model superiority.
@@ -463,17 +459,11 @@ A **per-class recall heatmap** across all four models is also produced — the s
 **Step 6 — Engineer-facing explainability: SHAP → plain language (communication).**
 Directly inspired by Reinhausen TESSA's product framing of "evidence + probability + recommendation." Raw SHAP plots are unreadable to a field engineer who has never heard of SHAP; this step builds a function that translates SHAP output into human diagnostic prose: a diagnosis line, a confidence percentage (with an abstention flag if below threshold), the top contributing signals stated in plain gas names with direction ("acetylene (C₂H₂) — arcing marker: pushed TOWARD D2"), each gas level compared against its IEC 60599 typical/high thresholds, agreement or disagreement from every classical method, and a recommended action pulled from a fault-meaning dictionary (e.g., *"D2: High-energy arcing — most critical fault. Potential catastrophic failure. Immediate inspection required. Priority: CRITICAL."*). This is explicitly framed as "what real systems do, and what an interviewer at GE Vernova or Hitachi Energy will ask about."
 
-**Step 7 — Automated per-transformer report generation (product feature).**
-Directly inspired by Reinhausen TESSA's "automated reports" and GE Vernova Perception's per-asset health reports. For each of the 70 test transformers, a self-contained HTML report is generated containing: a gas-profile bar chart, the full classical-method consensus table, the ML diagnosis with confidence, the plain-language SHAP explanation, a risk score with a severity color band (critical/high/medium/low), a recommended action, and an abstention banner where applicable. **70 HTML files** are produced in `reports/per_transformer/`. This single feature is described as moving the project "from 'ML notebook' to 'condition-monitoring tool' in a recruiter's eyes."
-
-**Step 8 — Data quality / plausibility validation layer (deployment-ready).**
-A real deployment receives gas readings from a field device, and field devices produce corrupt readings: a sensor stuck at zero, impossible negative values, transcription errors. A system that diagnoses garbage input without warning is dangerous. A validator checks: negative values (impossible), values exceeding IEC 60599 physical plausibility bounds, all-gases-exactly-zero (likely missing data or sensor failure), the dataset's own 0.0001 zero-placeholder convention, and an anomaly pattern (elevated C₂H₂ with very low CH₄/C₂H₄, an unusual pattern worth flagging). The validator returns a clear `PASS`/`FAIL` status with itemized issues rather than crashing or silently diagnosing bad data.
-
 **Step 9 — Reproducibility scaffolding + GitHub release (open-source quality).**
-Grounded in the finding that repositories scoring higher on the NeurIPS "ML Code Completeness Checklist" correlate with markedly higher star counts — a repository without pinned dependencies, fixed random seeds, and a one-command run script cannot be trusted or extended by anyone else. Built: a version-pinned `requirements.txt`, a one-command `run.py` that reproduces every key result end to end, GitHub Topics added to the repo (`dissolved-gas-analysis`, `transformer-health-monitoring`, `predictive-maintenance`, `xgboost`, `shap`, `iec-60599`, `condition-monitoring`, `ieee-c57104`, `fault-classification`), a tagged **v1.0.0** release with descriptive release notes, a GitHub Actions CI workflow that verifies the environment on every push, and a basic `pytest` suite covering the classical methods, the validator, and the consensus engine.
+Grounded in the finding that repositories scoring higher on the NeurIPS "ML Code Completeness Checklist" correlate with markedly higher star counts. Built: a version-pinned `requirements.txt`, fixed random seeds in the notebook, GitHub Topics added to the repo (`dissolved-gas-analysis`, `transformer-health-monitoring`, `predictive-maintenance`, `xgboost`, `shap`, `iec-60599`, `condition-monitoring`, `ieee-c57104`, `fault-classification`), and tagged **v1.0.0** and **v2.0.0** releases. The research repository does not contain a one-command run script, a CI workflow or an automated test suite; the results are reproduced by running `notebooks/01_load_and_look.ipynb`.
 
 **Step 10 — Package the Python DGA library (ecosystem contribution).**
-The original strategic research explicitly found: *"No actively maintained Python DGA library exists. Existing DGA tools are an Excel add-in (engineers-tools/xDGA), HTML-canvas Duval tools, or one-off research/MATLAB repos."* To fill this real ecosystem gap, the classical methods (not the ML model) were packaged as a standalone, pip-installable Python library, `pydga`, in its own GitHub repository (`AR0714/pydga`), with a clean public API (`import dga; dga.run_consensus(H2=2240, CH4=1400, C2H6=620, C2H4=280, C2H2=5)`), a proper `pyproject.toml`, an MIT license, a pinned dependency list, a basic test suite, and publication to **PyPI** via `twine upload dist/*` — after which `pip install pydga` works for anyone in the world.
+The original strategic research explicitly found: *"No actively maintained Python DGA library exists. Existing DGA tools are an Excel add-in (engineers-tools/xDGA), HTML-canvas Duval tools, or one-off research/MATLAB repos."* To address this gap, the classical methods (not the ML model) were packaged as a standalone Python library, `pydga`, with a clean public API (`import dga; dga.run_consensus(H2=2240, CH4=1400, C2H6=620, C2H4=280, C2H2=5)`), an MIT license and a pinned dependency list. The library is **not yet published**: it is not on PyPI and cannot be installed with `pip install`. The same six-method consensus engine is available today in the research repository (`src/classical/`).
 
 ### Part 2 Summary Table (from the original handbook)
 
@@ -485,10 +475,8 @@ The original strategic research explicitly found: *"No actively maintained Pytho
 | 4 | Leakage audit + honest evaluation | Publishable honesty — most projects skip this |
 | 5 | 4-model comparison + macro-F1 + CIs | Rigorous evaluation — accuracy alone was noise |
 | 6 | SHAP → plain-language evidence | Reinhausen: evidence + probability + recommendation |
-| 7 | 70 automated per-transformer reports | Product behaviour — mirrors TESSA automated reports |
-| 8 | Gas plausibility validator | Deployment-ready — refuses garbage input |
-| 9 | Reproducibility + CI + release | Open-source quality standard; NeurIPS checklist |
-| 10 | `pydga` Python library on PyPI | Fills real ecosystem gap — original contribution |
+| 9 | Reproducibility (pinned requirements, seeds) + release tags | Open-source quality standard; NeurIPS checklist |
+| 10 | `pydga` standalone Python library (not yet published) | Fills a real ecosystem gap — planned original contribution |
 
 **Standing rules that did not change across Part 2** (carried forward from the handbook verbatim): stratified splits always — rare classes must keep their proportion; report per-class metrics (precision/recall/F1), not just overall accuracy; use macro-F1 plus bootstrap confidence intervals on the 70-row test; every model is judged on the sealed, unseen test set only; calibrated probabilities (never raw confidence) feed all risk rankings; never invent data — no time-series, no RUL, no streaming, no dollar-risk values; evaluation honesty is treated as a feature, not a weakness, and every limitation is disclosed explicitly.
 
@@ -635,169 +623,7 @@ The **v2.0.0** tag marks a full project milestone: calibrated ML classifier (Par
 
 ## 7. Part 4 — Conversational Digital Twin + Live Web Dashboard
 
-*Subtitle: "Conversational Transformer Digital Twin + Live Dashboard"*
-
-### 7.1 The Vision
-
-Part 3 built an LLM diagnostic agent that takes five gas values, runs them through the XGBoost model, retrieves IEC 60599 guidance, and generates an engineering report — but a real user, especially a layperson, should not need to know what H₂ or C₂H₂ means. They should be able to simply ask: *"Is the transformer okay?"* and get a clear, intelligent answer. Part 4 builds two things on top of Part 3:
-
-1. **A Conversational Transformer Agent** — a chatbot where anyone, layperson or engineer, can ask anything about the transformer in natural language and receive a meaningful, context-aware answer grounded in real sensor data.
-2. **A Live Web Dashboard** — a browser-based interface showing an animated transformer graphic, real-time health gauges, gas-level charts, and an embedded chatbot panel, deployable online so recruiters and stakeholders can access it from anywhere.
-
-Example conversations envisioned directly in the handbook:
-
-| User Asks (Natural Language) | System Responds (Plain English) |
-|---|---|
-| Is the transformer okay? | Yes, your transformer is operating normally. Gas levels are within safe limits. Schedule the next check in 6–12 months. |
-| Should I be worried? | There are early signs of partial discharge — a type of electrical fault inside the insulation. It is not dangerous yet, but an inspection within 3 months is recommended. |
-| What is acetylene? | Acetylene is a gas that forms inside a transformer when there is electrical arcing — like a spark inside the oil. High levels mean urgent maintenance is needed. |
-| How long will this transformer last? | Based on current gas levels and thermal stress, the transformer appears healthy. No immediate risk to service life is indicated. |
-| What voltage is it handling? | Currently receiving 11,000 V on the primary side and stepping it down to 433 V for the local distribution network at 68% load capacity. |
-| What happens if we ignore this? | If the partial discharge fault is left unchecked, it can progress to full electrical breakdown (arcing), which may cause a transformer fire or outage. Early action is always cheaper. |
-
-### 7.2 System Architecture — Data Flow
-
-```
-USER → types question in chatbot (browser or CLI)
-INTENT DETECTOR → understands what the user is asking (health / voltage / gas / advice)
-SENSOR READER → pulls latest transformer readings from simulator (or real hardware)
-ML MODEL → XGBoost runs on current DGA gas values → diagnosis + confidence
-RAG ENGINE → retrieves relevant IEC 60599 / IEEE chunks from FAISS index
-LLM (llama3.2) → formats everything into plain English, scaled to user level
-RESPONSE → shown in chatbot panel / dashboard / CLI
-```
-
-### 7.3 Phase A — Conversational Backend (Steps 20–24)
-
-*Built and tested entirely in the CLI before any dashboard work begins — the correct order is to get the brain working first, then build the face.*
-
-**Step 20 — Sensor Simulator (`src/sensor_simulator.py`).**
-Since no physical hardware is connected, this module simulates a live data feed, generating readings consistent with the current fault scenario being tested, designed so a real SCADA/Modbus reader could replace it later without changing any other code. Outputs: primary voltage (11 kV / 33 kV / 132 kV), secondary voltage (stepped-down by ratio), load percentage (0–100%, realistic daily variation curve), oil temperature (°C, correlated with load), winding temperature (°C, typically 15–25 °C above oil under load), the five DGA gas readings (H₂, CH₄, C₂H₆, C₂H₄, C₂H₂ — able to simulate any fault class), and a cumulative operating-hours counter.
-
-**Step 21 — Conversation Memory (`src/transformer_memory.py`).**
-Maintains a short-term memory of the conversation within a session. Without memory every message is treated independently and the chatbot cannot answer follow-up questions; with memory, a user can say "tell me more about that" and the system understands the referent. Memory stores: the last 8 conversation turns (user message + assistant response pairs), the last diagnosis result and confidence level, the last sensor snapshot (so follow-up questions use consistent data), and the session start time plus turn count.
-```
-User:  Is the transformer okay?
-Agent: Early signs of partial discharge detected. Confidence 75%.
-User:  What does partial discharge mean?
-Agent: [knows from memory the last diagnosis was PD — explains in context]
-User:  How urgent is it?
-Agent: [still referencing PD — gives timeline and risk assessment]
-```
-
-**Step 22 — Intent Detector (`src/intent_detector.py`).**
-Classifies what the user is actually asking so the chatbot gives the right type of answer and pulls the right data — a voltage question needs electrical readings; a fault question needs the ML model output.
-
-| Intent Class | Example User Phrases | Data Needed |
-|---|---|---|
-| `health_status` | "Is it okay? Is transformer healthy? Any problems?" | Model diagnosis + confidence |
-| `voltage_query` | "What voltage? Primary/secondary? Step up or down?" | Sensor voltage readings |
-| `gas_query` | "What is acetylene? Why is H2 high? Explain C2H2" | RAG IEC knowledge base |
-| `temperature` | "Is it overheating? What is the oil temperature?" | Temperature sensor readings |
-| `load_query` | "How much load? Is it overloaded? Capacity?" | Load percentage reading |
-| `action_advice` | "What should I do? Should I shut it down? Urgent?" | Diagnosis + IEC action levels |
-| `life_estimate` | "How long will it last? Remaining life?" | Cumulative stress indicators |
-| `explain_fault` | "What is partial discharge? What does D2 mean?" | RAG IEC knowledge base |
-| `general_chat` | "Hello / Thanks / What can you tell me?" | None — conversational response |
-
-**Step 23 — Core Chatbot Brain (`src/transformer_chatbot.py`).**
-The central orchestrator of Part 4, wiring together the sensor simulator, intent detector, XGBoost model, RAG engine, conversation memory, and Ollama LLM. For every user message it follows a fixed eight-step pipeline:
-
-1. Detect intent using `intent_detector`
-2. Pull the latest sensor snapshot from `sensor_simulator`
-3. If the intent needs diagnosis, run XGBoost on the current DGA gases
-4. Retrieve relevant IEC 60599 chunks from FAISS via `rag_engine`
-5. Build a prompt combining sensor data, diagnosis, IEC context, and conversation history
-6. Send the prompt to Ollama `llama3.2` and get a plain-English response
-7. Store the turn in conversation memory
-8. Return the response to the user
-
-A **layperson vs. engineer mode** is also detected automatically from vocabulary — a question using the word "acetylene" gets a technical answer; "is it okay?" gets a simple yes/no with a one-sentence explanation.
-
-**Step 24 — CLI Chatbot + Evaluation (`src/chat_cli.py`).**
-An interactive command-line chatbot for testing the full pipeline before the dashboard is built, with a formal evaluation of 10 test questions covering every intent class, verified for quality and correctness:
-```
-$ python src/chat_cli.py
-Transformer Agent ready. Ask me anything.
-You: Is the transformer okay?
-Agent: Your transformer is showing early signs of partial discharge...
-```
-The 10 evaluation questions: *"Is the transformer working normally? Should I be worried about anything? What voltage is the transformer handling? Is it overheating? What is acetylene and why does it matter? How loaded is the transformer right now? What should the maintenance team do? Is there any urgent risk? How long until the next inspection? Tell me more about partial discharge."* Success criteria: all 10 questions answered without errors; layperson questions get simple, jargon-free responses; technical questions get detailed engineering responses; follow-up questions correctly use conversation memory. After evaluation passes, all Phase A files are committed and tagged **v3.0.0-alpha**.
-
-### 7.4 Phase B — Live Web Dashboard (Steps 25–27)
-
-*Wraps the Phase A backend in a Flask web server and delivers a browser dashboard with an animated transformer, live gauges, and the embedded chatbot panel.*
-
-**Step 25 — Flask Server (`app/server.py`).**
-A lightweight Flask server serving the dashboard HTML and exposing three API endpoints:
-
-| API Endpoint | Method | Returns |
-|---|---|---|
-| `/` | GET | Serves `index.html` dashboard page |
-| `/api/sensors` | GET | Latest sensor snapshot as JSON — voltage, load, temp, gas ppm |
-| `/api/chat` | POST | Accepts a user message, returns the LLM response as JSON |
-| `/api/diagnosis` | GET | Latest ML diagnosis — class, confidence, reliability, probabilities |
-
-```bash
-python app/server.py
-# * Running on http://localhost:5000
-```
-
-**Step 26 — Dashboard (`app/static/index.html` + CSS + JS).**
-The dashboard is divided into four visual zones on a single page:
-- **Zone 1 — Top banner:** project title, transformer name/ID, a green online-status dot.
-- **Zone 2 — Left panel:** an animated transformer SVG graphic with current-flow lines, step-up/step-down labels, and live primary/secondary voltage readouts.
-- **Zone 3 — Center panel:** a health status badge (NORMAL / WARNING / CRITICAL in green/yellow/red), a confidence meter, the fault class in plain English, six gas-level bars (H₂, CH₄, C₂H₆, C₂H₄, C₂H₂), and load/temperature gauges.
-- **Zone 4 — Right panel:** the chatbot interface — scrollable message history, a text input box, a Send button, and a "powered by" label.
-
-The animated transformer graphic uses two coil symbols (primary and secondary windings), animated dashed current-flow lines on the primary side, a stepped-down-voltage arrow on the secondary side, a core color that shifts green/yellow/red with health status, and animation speed that increases with load percentage. JavaScript polls `/api/sensors` every 3 seconds and `/api/diagnosis` every 5 seconds, updating all gauges smoothly without a page refresh; the chatbot calls `/api/chat` on message submission.
-
-**Step 27 — Deployment.**
-```
-Add requirements.txt with flask, sentence-transformers, faiss-cpu, joblib, requests
-Add a Procfile: web: python app/server.py
-Push to GitHub
-Connect GitHub repo to Render — auto-deploys on every push
-Add the live URL to GitHub README and LinkedIn profile
-```
-*Important note preserved from the handbook:* Ollama runs locally only — for cloud deployment, the LLM call switches to a free hosted API (Groq / Together AI / Hugging Face Inference) with the same `llama3.2`-class model, requiring zero change to the chatbot logic, only a changed HTTP endpoint. This is precisely the design decision that was later carried through into the live **GridPulse** deployment, which calls **Groq's `llama-3.3-70b-versatile`** model through a Netlify serverless function rather than a local Ollama instance.
-
-| Platform | Cost | Best For | URL Example |
-|---|---|---|---|
-| Local (`localhost:5000`) | Free | Demo on your own laptop | `http://localhost:5000` |
-| Render.com | Free tier | Online — share with recruiters | `transformer-dga.onrender.com` |
-| Railway.app | Free tier | Fastest deploy — push to GitHub | `transformer.up.railway.app` |
-| Hugging Face Spaces | Free | ML project showcase | `huggingface.co/spaces/AR0714/...` |
-
-### 7.5 Technology Stack — Part 4
-
-| Component | Technology | Purpose |
-|---|---|---|
-| Sensor data | Python (custom simulator) | Simulates real-time transformer readings |
-| ML diagnosis | XGBoost + joblib | Fault classification from DGA gases (Part 2) |
-| Knowledge retrieval | FAISS + sentence-transformers | RAG over IEC 60599 (Part 3) |
-| LLM (local) | Ollama `llama3.2` | Generates plain-English responses |
-| LLM (cloud) | Groq API (`llama3-8b-8192`-class) | Free cloud LLM for the deployed version |
-| Web server | Flask (Python) | Serves dashboard + chat API |
-| Frontend | HTML + CSS + JavaScript | Animated dashboard, no framework needed |
-| Charts/gauges | Chart.js (CDN) | Gas-level bars, load gauge, history chart |
-| Deployment | Render.com | Free cloud hosting, auto-deploy from GitHub |
-
-### 7.6 Four Important Notes (carried verbatim)
-
-1. Build Phase A completely before touching Phase B — the chatbot must work perfectly in the CLI before adding the dashboard.
-2. The sensor simulator uses the exact same feature vector as the XGBoost model (H₂, CH₄, C₂H₆, C₂H₄, C₂H₂) — the order must never change.
-3. Ollama must be running (`ollama serve`) whenever testing locally; for cloud deployment, switch to the Groq API.
-4. The Flask server and Ollama can run simultaneously on the same machine, since they use different ports (5000 and 11434). All new Part 4 files go under `src/` (backend) or `app/` (web) — existing Part 2/3 files are never modified.
-
-### 7.7 Part-by-Part Project Status (as recorded in the Part 4 handbook)
-
-| Part | Title | Status | Tag |
-|---|---|---|---|
-| Part 1 | Data Loading, EDA, Classical DGA Methods | COMPLETE | — |
-| Part 2 | XGBoost + Calibration + SHAP + CLI Predictor | COMPLETE | v1.0.0 |
-| Part 3 | LLM Diagnostic Agent with RAG over IEC 60599 | COMPLETE | v2.0.0 |
-| Part 4 | Conversational Digital Twin + Live Dashboard | IN PROGRESS | v3.0.0 |
+Part 4 (the conversational assistant and live web dashboard) lives in the separate [gridpulse-dashboard](https://github.com/AR0714/gridpulse-dashboard) repository; see section 8.
 
 ---
 
@@ -824,9 +650,9 @@ Five fault scenarios are switchable live with keys **1–5** or on-screen pills:
 | IEC 60599 Ratios (classical) | Partial | No-decision on ~30% of cases |
 | Duval Triangle (classical) | **57.1%** | Industry standard since the 1970s |
 | Random Forest (ML baseline) | 78.6% | With physics-informed features |
-| **XGBoost — calibrated (ours)** | **80.0%** | ECE: 0.15 → 0.10 after isotonic calibration |
+| **XGBoost — calibrated (ours)** | **80.0%** | ECE: 0.158 → 0.106 after temperature scaling (T* = 1.7334) (temperature fitted on the same 70 test rows, so in-sample); 95% bootstrap CI [70.0%, 88.6%] |
 
-**+23 percentage points** above the Duval Triangle baseline. Both methods evaluated on the same 70-row held-out test set (10 samples per class, stratified split). Additional findings: SHAP confirms the model relies most heavily on acetylene (C₂H₂) to detect arcing (SHAP value +0.74 on the demonstrative D2 case); isotonic calibration reduced the expected calibration error (ECE) from 0.15 to 0.10; a full leakage audit found 41 of 49 IEC TC10 benchmark rows (84%) duplicated in training, corrected to an honest 8-row unseen evaluation; bootstrap 95% confidence intervals across SVM, Random Forest, XGBoost, and LightGBM confirmed that the 1–2 point accuracy differences between tree-based models are statistically indistinguishable noise at this sample size.
+**+23 percentage points** above the Duval Triangle baseline. Both methods evaluated on the same 70-row sealed test set (10 per class, stratified split); the XGBoost accuracy has a 95% bootstrap confidence interval of [70.0%, 88.6%]. Additional findings: SHAP confirms the model relies most heavily on acetylene (C₂H₂) to detect arcing (SHAP value +0.74 on the demonstrative D2 case); temperature scaling (T* = 1.7334) reduced the expected calibration error (ECE) from 0.158 to 0.106 (temperature fitted on the same 70 test rows, so in-sample); a full leakage audit found 42 of 49 IEC TC10 benchmark rows duplicated in training, corrected to an honest 6-row unseen evaluation; bootstrap 95% confidence intervals across SVM, Random Forest, XGBoost, and LightGBM confirmed that the 1–2 point accuracy differences between tree-based models are statistically indistinguishable noise at this sample size.
 
 ---
 
@@ -834,12 +660,12 @@ Five fault scenarios are switchable live with keys **1–5** or on-screen pills:
 
 Carried forward verbatim from the project's own README and evaluation-honesty sections, because disclosing limitations explicitly is treated throughout this project as a mark of engineering maturity, not a weakness to hide:
 
-- The dataset is approximately 400 labelled samples drawn from overlapping public sources. Reported figures are dataset-specific and should not be read as real-world field performance.
-- The rarest class (T2, thermal 300–700 °C) has only 21 samples in the full dataset; per-class recall for this class is correspondingly unstable.
+- The training data is 582 rows after deduplication (584 before), drawn from overlapping public sources, plus a sealed 70-row test set. Reported figures are dataset-specific and should not be read as real-world field performance.
+- T2 (thermal 300–700 °C) is a small class (45 rows in the raw training data, the smallest class); per-class recall for this class is correspondingly unstable.
 - There is no time-series data, so trend-based features — which the standards themselves weight heavily for diagnosing degradation rate — are entirely absent from this system.
 - The system has not been validated against any physically inspected transformer outside the benchmark set.
 - The sealed 70-row test set is curated (10 samples per class), not a natural real-world class distribution, and so it likely overstates performance relative to an imbalanced real deployment.
-- The IEC TC10 benchmark, as originally obtained, had 41 of 49 rows (84%) overlapping with the training data; only 8 genuinely unseen rows remain after correction, which is too small a sample for strong independent claims.
+- The IEC TC10 benchmark, as originally obtained, had 42 of 49 rows overlapping with the training data; only 6 genuinely unseen rows remain after correction, which is too small a sample for strong independent claims.
 - This project is explicitly a diagnosis-and-triage layer built on top of classical standards — not a real-time sensor platform, not a remaining-useful-life predictor, not a digital twin in the full sense, and not a source of financial-risk figures. These were deliberately excluded rather than fabricated.
 - On the live GridPulse dashboard specifically, the sensor readings shown are simulated for demonstration purposes; the model accuracy and evaluation figures quoted are the real, validated results from the underlying research repository.
 
@@ -850,55 +676,43 @@ Carried forward verbatim from the project's own README and evaluation-honesty se
 ```
 transformer-health-dga/
 ├── data/
-│   ├── raw/                          # Original DGA dataset
 │   └── iec_knowledge_base/           # 9 IEC 60599 text files (Part 3)
 ├── models/
-│   ├── xgb_dga_base.joblib           # Raw XGBoost model (Part 2)
-│   ├── xgb_dga_calibrated.joblib     # Isotonic-calibrated model (Part 2)
+│   ├── xgb_dga_base.joblib           # Raw XGBoost model
+│   ├── xgb_dga_calibrated.joblib     # Temperature-scaled model
 │   └── faiss_index/                  # FAISS vector index (Part 3)
 │       ├── index.faiss
 │       └── metadata.json
 ├── src/
 │   ├── classical/                    # key_gas.py, iec_ratios.py, duval.py,
-│   │                                 # rogers.py, doernenburg.py, duval_pentagon.py,
-│   │                                 # consensus.py (Parts 1 & 2)
-│   ├── validation/
-│   │   └── gas_validator.py          # Plausibility validation layer (Part 2)
-│   ├── reporting/
-│   │   └── report_template.py        # Per-transformer HTML reports (Part 2)
-│   ├── calibration.py                # CalibratedDGAModel class (Part 2)
-│   ├── predict.py                    # CLI predictor (Part 2)
+│   │                                 # rogers.py, doernenburg.py, pentagon.py,
+│   │                                 # consensus.py
+│   ├── classical_methods.py
+│   ├── calibration.py                # CalibratedDGAModel class
+│   ├── predict.py                    # CLI predictor
 │   ├── build_kb.py                   # Builds FAISS index (Part 3)
 │   ├── rag_engine.py                 # RAG retrieval engine (Part 3)
 │   ├── agent.py                      # Ollama HTTP integration (Part 3)
 │   ├── diagnose_agent.py             # CLI diagnostic agent (Part 3)
-│   ├── sensor_simulator.py           # Live sensor data (Part 4)
-│   ├── transformer_memory.py         # Conversation memory (Part 4)
-│   ├── intent_detector.py            # Intent classification (Part 4)
-│   ├── transformer_chatbot.py        # Conversational brain (Part 4)
-│   └── chat_cli.py                   # CLI chatbot (Part 4)
-├── app/                              # Web dashboard (Part 4)
-│   ├── server.py                     # Flask web server
-│   └── static/
-│       ├── index.html
-│       ├── transformer.css
-│       └── dashboard.js
+│   ├── sensor_simulator.py           # Sensor simulator
+│   ├── transformer_memory.py         # Conversation memory
+│   ├── intent_detector.py            # Intent classification
+│   ├── transformer_chatbot.py        # Conversational brain
+│   └── chat_cli.py                   # CLI chatbot
 ├── notebooks/
-│   ├── 01_load_and_look.ipynb        # Parts 1 & 2 worked here
-│   └── 15_rag_pipeline.ipynb         # Part 3 RAG evaluation
+│   └── 01_load_and_look.ipynb        # Full ML pipeline
 ├── reports/
 │   ├── calibration_curve.png
-│   ├── shap_summary_bar.png
-│   ├── shap_waterfall.png
+│   ├── classical_comparison.png
 │   ├── confusion_matrix.png
 │   ├── risk_coverage_curve.png
-│   ├── per_class_recall_heatmap.png
+│   ├── shap_per_class.png
+│   ├── shap_summary.png
+│   ├── shap_waterfall.png
 │   ├── fleet_risk_ranking.csv
-│   └── per_transformer/              # 70 automated HTML reports
-├── tests/                            # pytest suite
+│   ├── MODEL_CARD.md
+│   └── Transformer_DGA_Dataset_Understanding.pdf
 ├── requirements.txt                  # Pinned dependency versions
-├── run.py                            # One-command reproduction script
-├── Procfile                          # Cloud deployment
 ├── DECISIONS.md                      # Running engineering decision log
 └── README.md
 
@@ -912,13 +726,9 @@ gridpulse-dashboard/                  # Production front-end (separate repo)
 │   └── data/scenarios.ts
 ├── netlify/functions/chat.ts         # Groq-backed AI assistant (server-side key)
 └── docs/demo.gif                     # Live interactive demo
-
-pydga/                                # Standalone open-source library (separate repo)
-├── dga/
-│   ├── classical/                    # Pure-Python re-implementation
-│   └── validation/
-└── pyproject.toml                    # Published to PyPI
 ```
+
+The datasets (`DGA_train.xlsx`, `DGA_test_unseen.xlsx`, `IEC_TC_10_data.xlsx`) are not present in the repository.
 
 ---
 
@@ -928,8 +738,6 @@ pydga/                                # Standalone open-source library (separate
 ```bash
 pip install -r requirements.txt
 jupyter notebook notebooks/01_load_and_look.ipynb
-# or, for one-command full reproduction:
-python run.py
 ```
 
 **RAG diagnostic agent (Part 3):**
@@ -939,10 +747,9 @@ ollama serve                 # if not already running
 python src/diagnose_agent.py
 ```
 
-**Conversational dashboard (Part 4):**
+**Conversational CLI chatbot (Part 4 backend):**
 ```bash
-python app/server.py
-# open http://localhost:5000
+python src/chat_cli.py
 ```
 
 **Production dashboard (`gridpulse-dashboard`):**
@@ -952,10 +759,9 @@ npm run dev                  # http://localhost:5173
 # optional: add a free Groq key at console.groq.com/keys to .env for live AI chat
 ```
 
-**Standalone classical-methods library:**
+**Classical-methods consensus engine** (run from the `transformer-health-dga` repository root; the standalone `pydga` package is not yet published):
 ```bash
-pip install pydga
-python -c "import dga; print(dga.run_consensus(H2=2240, CH4=1400, C2H6=620, C2H4=280, C2H2=5))"
+python -c "from src.classical.consensus import run_consensus; print(run_consensus(H2=2240, CH4=1400, C2H6=620, C2H4=280, C2H2=5))"
 ```
 
 ---
